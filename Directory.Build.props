@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <SolutionRoot>$(MSBuildThisFileDirectory)</SolutionRoot>
+  </PropertyGroup>
+
+  <!-- Import our shared user configuration file -->
+  <Import
+    Project="$(SolutionRoot)Config.Build.user.props"
+    Condition="Exists('$(SolutionRoot)Config.Build.user.props')"
+  />
+
+  <!-- Primary configuration for the project -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>recommended</AnalysisMode>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
+  </PropertyGroup>
+
+  <!-- Custom props -->
+  <PropertyGroup>
+    <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' == 'true'">$(HOME)/.local/share/</PathBeforeSteam>
+    <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' != 'true'">$(MSBuildProgramFiles32)/</PathBeforeSteam>
+    <SuperBattleGolfGameRootDir Condition="$(SuperBattleGolfGameRootDir) == ''">$(PathBeforeSteam)Steam/steamapps/common/Super Battle Golf/</SuperBattleGolfGameRootDir>
+    <SuperBattleGolfBepInExDir Condition="$(SuperBattleGolfBepInExDir) == ''">$(SuperBattleGolfGameRootDir)/BepInEx/</SuperBattleGolfBepInExDir>
+    <ManagedDir>$(SuperBattleGolfGameRootDir)/Super Battle Golf_Data/Managed/</ManagedDir>
+  </PropertyGroup>
+</Project>

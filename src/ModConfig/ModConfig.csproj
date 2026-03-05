@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>com.atomic.modconfig</AssemblyName>
+    <AssemblyTitle>ModConfig</AssemblyTitle>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="UI\empty-key.png" />
+  </ItemGroup>
+
+  <!-- Mod files to copy to the relative BepInEx directory after build -->
+  <ItemGroup>
+    <DeployModFiles Include="$(TargetPath)" BepInExDir="plugins/" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\empty-key.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
