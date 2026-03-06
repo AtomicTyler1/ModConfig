@@ -23,6 +23,10 @@ namespace ModConfig.Core
                 string modName = plugin.Value.Metadata.Name;
                 ConfigFile configFile = plugin.Value.Instance.Config;
 
+                bool hasNoConfigs = configFile.Keys.Count == 0;
+
+                if (hasNoConfigs) continue;
+
                 UICreator.CreateModPage(modsPage, modName, out GameObject page);
                 UICreator.CreateModPageNavigationButton(topBar, modsPage, page, modName);
 
