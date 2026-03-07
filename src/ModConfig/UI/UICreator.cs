@@ -421,7 +421,7 @@ namespace ModConfig.UI
                 {
                     result = Mathf.Clamp(result, minValue, maxValue);
                     localSliderOption.SetValue(result);
-                    string formatValue = result.ToString("F0");
+                    string formatValue = result.ToString();
                     localSliderOption.SetValueText(formatValue);
                     valueTextComponent.text = formatValue;
                     inputTextComponent.text = formatValue;

@@ -115,7 +115,7 @@ namespace ModConfig.Core
                                 );
 
                                 sliderOption.onChanged += () => {
-                                    entryBase.BoxedValue = sliderOption.value;
+                                    entryBase.BoxedValue = (int)sliderOption.value;
                                     sliderOption.SetValueText(entryBase.BoxedValue.ToString());
                                     Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {entryBase.BoxedValue}");
                                 };
@@ -132,7 +132,7 @@ namespace ModConfig.Core
                                 );
 
                                 sliderOption.onChanged += () => {
-                                    entryBase.BoxedValue = sliderOption.value;
+                                    entryBase.BoxedValue = (int)sliderOption.value;
                                     sliderOption.SetValueText(entryBase.BoxedValue.ToString());
                                     Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {entryBase.BoxedValue}");
                                 };
