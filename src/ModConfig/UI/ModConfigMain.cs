@@ -1,12 +1,5 @@
 ﻿using ModConfig.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.UI;
 
 namespace ModConfig.UI
 {

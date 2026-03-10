@@ -3,12 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
 namespace ModConfig.UI
@@ -217,7 +215,8 @@ namespace ModConfig.UI
             CreateNewSection(topBarContent, name, out GameObject container);
 
             CreateButton(container, 
-                name, 
+                name,
+                "",
                 () => { HideAllOtherModPages(modsPage, modPage); }
             );
         }
@@ -243,7 +242,7 @@ namespace ModConfig.UI
             component.fontSizeMax -= 4;
         }
 
-        public static void CreateDropdown(GameObject container, string configName, List<string> options, out DropdownOption dropdownOption)
+        public static void CreateDropdown(GameObject container, string configName, List<string> options, string description, out DropdownOption dropdownOption)
         {
             var newDropdown = GameObject.Instantiate(UICloner.dropdown, container.transform);
             newDropdown.name = $"DROPDOWN_{configName}";
@@ -253,10 +252,11 @@ namespace ModConfig.UI
             dropdownOption.localized = null;
             dropdownOption.SetOptions(options);
 
+            CreateDescriptionBox(newDropdown.transform.Find("Label Text").gameObject, description);
             Plugin.Log.LogInfo($"Created dropdown for config: {configName} in section: {container.name} with options: {string.Join(", ", options)})");
         }
 
-        public static void CreateFloatSlider(GameObject container, float value, float minValue, float maxValue, string configName, out SliderOption sliderOption)
+        public static void CreateFloatSlider(GameObject container, float value, float minValue, float maxValue, string configName, string description, out SliderOption sliderOption)
         {
             var newSlider = GameObject.Instantiate(UICloner.slider, container.transform);
             newSlider.name = $"SLIDER_{configName}";
@@ -343,9 +343,11 @@ namespace ModConfig.UI
                 inputTextView.SetActive(false);
                 labelValueText.gameObject.SetActive(true);
             });
+
+            CreateDescriptionBox(newSlider.transform.Find("Label Text").gameObject, description);
         }
 
-        public static void CreateIntSlider(GameObject container, int value, int minValue, int maxValue, string configName, out SliderOption sliderOption)
+        public static void CreateIntSlider(GameObject container, int value, int minValue, int maxValue, string configName, string description, out SliderOption sliderOption)
         {
             var newSlider = GameObject.Instantiate(UICloner.slider, container.transform);
             newSlider.name = $"SLIDER_{configName}";
@@ -435,9 +437,12 @@ namespace ModConfig.UI
                 inputTextView.SetActive(false);
                 labelValueText.gameObject.SetActive(true);
             });
+
+            CreateDescriptionBox(newSlider.transform.Find("Label Text").gameObject, description);
         }
 
-        public static void CreateStringInput(GameObject container, string name, Action<string> onChange, string defaultValue = "")
+        // UICreator.cs - Update CreateStringInput method signature and body
+        public static void CreateStringInput(GameObject container, string name, Action<string> onChange, string description, string defaultValue = "", bool isColor = false)
         {
             var stringInput = GameObject.Instantiate(UICloner.slider, container.transform);
             stringInput.name = $"INPUT_{name}";
@@ -459,10 +464,40 @@ namespace ModConfig.UI
             var displayTextComponent = displayTextObj.GetComponent<TextMeshProUGUI>();
             var displayRectTransform = displayTextObj.GetComponent<RectTransform>();
 
+            Image colorPreviewImage = null;
+            float rightPadding = -10f;
+
+            if (isColor)
+            {
+                rightPadding = -55f;
+
+                var strokeObj = new GameObject("ColorStroke", typeof(RectTransform), typeof(Image));
+                strokeObj.transform.SetParent(contents, false);
+                var strokeRect = strokeObj.GetComponent<RectTransform>();
+                strokeRect.anchorMin = new Vector2(1, 0.5f);
+                strokeRect.anchorMax = new Vector2(1, 0.5f);
+                strokeRect.sizeDelta = new Vector2(40, 40);
+                strokeRect.anchoredPosition = new Vector2(-25, 0);
+                strokeObj.GetComponent<Image>().color = new Color(0.878f, 0.89f, 0.843f, 1f);
+
+                var previewObj = new GameObject("ColorPreview", typeof(RectTransform), typeof(Image));
+                previewObj.transform.SetParent(strokeObj.transform, false);
+                var prevRect = previewObj.GetComponent<RectTransform>();
+                prevRect.anchorMin = Vector2.zero;
+                prevRect.anchorMax = Vector2.one;
+                prevRect.offsetMin = new Vector2(2, 2);
+                prevRect.offsetMax = new Vector2(-2, -2);
+
+                colorPreviewImage = previewObj.GetComponent<Image>();
+
+                if (ColorUtility.TryParseHtmlString(defaultValue.StartsWith("#") ? defaultValue : "#" + defaultValue, out Color startCol))
+                    colorPreviewImage.color = startCol;
+            }
+
             displayRectTransform.anchorMin = new Vector2(0, 0);
             displayRectTransform.anchorMax = new Vector2(1, 1);
             displayRectTransform.offsetMin = new Vector2(10, 0);
-            displayRectTransform.offsetMax = new Vector2(-10, 0);
+            displayRectTransform.offsetMax = new Vector2(rightPadding, 0);
 
             displayTextComponent.textWrappingMode = TextWrappingModes.NoWrap;
             displayTextComponent.text = defaultValue;
@@ -484,7 +519,6 @@ namespace ModConfig.UI
             inputTextComponent.alignment = TextAlignmentOptions.Left;
             inputTextComponent.color = displayTextComponent.color;
             inputTextComponent.raycastTarget = true;
-
             inputTextComponent.textWrappingMode = TextWrappingModes.NoWrap;
 
             var inputField = inputTextView.AddComponent<TMP_InputField>();
@@ -507,13 +541,24 @@ namespace ModConfig.UI
 
             inputField.onEndEdit.AddListener((newValue) => {
                 displayTextComponent.text = newValue;
+
+                if (isColor && colorPreviewImage != null)
+                {
+                    if (ColorUtility.TryParseHtmlString(newValue.StartsWith("#") ? newValue : "#" + newValue, out Color newCol))
+                    {
+                        colorPreviewImage.color = newCol;
+                    }
+                }
+
                 onChange?.Invoke(newValue);
                 inputTextView.SetActive(false);
                 displayTextObj.SetActive(true);
             });
+
+            CreateDescriptionBox(stringInput.transform.Find("Label Text").gameObject, description);
         }
 
-        public static void CreateButton(GameObject container, string name, Action action)
+        public static void CreateButton(GameObject container, string name, string description, Action action)
         {
             var buttonObj = GameObject.Instantiate(UICloner.button, container.transform);
             buttonObj.name = $"BUTTON_{name}";
@@ -523,6 +568,8 @@ namespace ModConfig.UI
             buttonObj.GetComponent<Button>().onClick.AddListener(() => action.Invoke());
 
             buttonObj.GetComponent<Transform>().localPosition = Vector3.zero;
+
+            CreateDescriptionBox(buttonObj.GetComponentInChildren<TextMeshProUGUI>().gameObject, description);
         }
 
         private static string KeyCodeToPath(KeyCode key)
@@ -530,7 +577,7 @@ namespace ModConfig.UI
             return $"<Keyboard>/{key.ToString().ToLower()}";
         }
 
-        public static void CreateKeybinding(GameObject container, string configName, KeyCode defaultValue, out ActionRebindOption actionRebindOption, out KeybindHook actionHook)
+        public static void CreateKeybinding(GameObject container, string configName, KeyCode defaultValue, string description, out ActionRebindOption actionRebindOption, out KeybindHook actionHook)
         {
             var map = new InputActionMap("ModConfigMap");
             var action = map.AddAction(configName);
@@ -617,6 +664,8 @@ namespace ModConfig.UI
                 kbdImage.enabled = true;
             }
 
+            CreateDescriptionBox(newKeybind.transform.Find("Label Text").gameObject, description);
+
             try
             {
                 actionRebindOption.Initialize(rebindManager, action, kbdIndex, -1);
@@ -625,6 +674,17 @@ namespace ModConfig.UI
             {
                 // I always error due to localization, it doesnt actually break anything so catch the error and discard.
             }
+        }
+
+        public static void CreateDescriptionBox(GameObject textObj, string description)
+        {
+            if (string.IsNullOrEmpty(description)) return;
+
+            var textMesh = textObj.GetComponent<TextMeshProUGUI>();
+            if (textMesh != null) textMesh.raycastTarget = true;
+
+            var hoverHandler = textObj.AddComponent<ConfigHoverHandler>();
+            hoverHandler.description = description;
         }
 
         public static Sprite getEmptyKeyIcon()

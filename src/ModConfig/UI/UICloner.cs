@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Components;
 
@@ -17,6 +14,8 @@ namespace ModConfig.UI
 
         public static Sprite emptyKeyIcon;
 
+        public static TMP_FontAsset baseFont;
+
         public static void GetUIRefs(Transform graphicsPage, Transform audioPage)
         {
             if (graphicsPage == null) return;
@@ -24,6 +23,7 @@ namespace ModConfig.UI
             titleTMP = GameObject.Instantiate(graphicsPage.Find("Title").gameObject, null);
             titleTMP.name = "MODCONFIG_TITLE_TEMPLATE";
             GameObject.DestroyImmediate(titleTMP.GetComponentInChildren<LocalizeStringEvent>());
+            baseFont = titleTMP.GetComponent<TextMeshProUGUI>().font;
 
             var _container = GameObject.Instantiate(graphicsPage.Find("Option Container"));
             _container.name = "MODCONFIG_CONTAINER_TEMPLATE";

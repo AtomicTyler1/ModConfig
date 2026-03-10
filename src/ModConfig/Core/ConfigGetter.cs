@@ -1,15 +1,11 @@
 ﻿using BepInEx.Bootstrap;
 using BepInEx.Configuration;
-using DG.Tweening.Plugins.Core;
 using ModConfig.UI;
 using ModConfig.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
-using UnityEngine.Rendering;
-using static PlayerCosmeticsMetadata;
 
 namespace ModConfig.Core
 {
@@ -50,7 +46,7 @@ namespace ModConfig.Core
 
                         if (settingType == typeof(bool))
                         {
-                            UICreator.CreateDropdown(container, entryBase.Definition.Key, new List<string> { "True", "False" }, out DropdownOption dropdownOption);
+                            UICreator.CreateDropdown(container, entryBase.Definition.Key, new List<string> { "True", "False" }, entryBase.Description.Description.ToString(), out DropdownOption dropdownOption);
 
                             bool currentVal = (bool)entryBase.BoxedValue;
                             dropdownOption.SetValue(currentVal ? 0 : 1);
@@ -63,41 +59,48 @@ namespace ModConfig.Core
                         else if (settingType == typeof(float))
                         {
                             var range = entryBase.Description.AcceptableValues as AcceptableValueRange<float>;
+                            float minValue = 0f;
+                            float maxValue = 999f;
+                            float? step = null;
 
                             if (range != null)
                             {
-                                UICreator.CreateFloatSlider(
-                                    container,
-                                    (float)entryBase.BoxedValue,
-                                    range.MinValue,
-                                    range.MaxValue,
-                                    entryBase.Definition.Key,
-                                    out SliderOption sliderOption
-                                );
+                                minValue = range.MinValue;
+                                maxValue = range.MaxValue;
 
-                                sliderOption.onChanged += () => {
-                                    entryBase.BoxedValue = sliderOption.value;
-                                    sliderOption.SetValueText(entryBase.BoxedValue.ToString());
-                                    Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {entryBase.BoxedValue}");
-                                };
+                                float span = maxValue - minValue;
+                                if (span <= 1.0f) step = 0.01f;
+                                else if (span <= 10.0f) step = 0.1f;
+                                else step = 1.0f;
                             }
-                            else
-                            {
-                                UICreator.CreateFloatSlider(
-                                    container,
-                                    (float)entryBase.BoxedValue,
-                                    0,
-                                    999,
-                                    entryBase.Definition.Key,
-                                    out SliderOption sliderOption
-                                );
 
-                                sliderOption.onChanged += () => {
-                                    entryBase.BoxedValue = sliderOption.value;
-                                    sliderOption.SetValueText(entryBase.BoxedValue.ToString());
-                                    Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {entryBase.BoxedValue}");
-                                };
-                            }
+                            UICreator.CreateFloatSlider(
+                                container,
+                                (float)entryBase.BoxedValue,
+                                minValue,
+                                maxValue,
+                                entryBase.Definition.Key,
+                                entryBase.Description.Description.ToString(),
+                                out SliderOption sliderOption
+                            );
+
+                            sliderOption.onChanged += () => {
+                                float newValue = sliderOption.value;
+                                if (newValue == (float)entryBase.BoxedValue)
+                                {
+                                    return;
+                                }
+
+                                if (step.HasValue)
+                                {
+                                    newValue = (float)Math.Round(newValue / step.Value) * step.Value;
+                                    sliderOption.valueWithoutNotify = newValue;
+                                }
+
+                                entryBase.BoxedValue = newValue;
+                                sliderOption.SetValueText(newValue.ToString("0.##"));
+                                Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {newValue}");
+                            };
                         }
                         else if (settingType == typeof(int))
                         {
@@ -111,6 +114,7 @@ namespace ModConfig.Core
                                     range.MinValue,
                                     range.MaxValue,
                                     entryBase.Definition.Key,
+                                    entryBase.Description.Description.ToString(),
                                     out SliderOption sliderOption
                                 );
 
@@ -128,6 +132,7 @@ namespace ModConfig.Core
                                     0,
                                     999,
                                     entryBase.Definition.Key,
+                                    entryBase.Description.Description.ToString(),
                                     out SliderOption sliderOption
                                 );
 
@@ -146,7 +151,7 @@ namespace ModConfig.Core
                             {
                                 List<string> options = listConstraint.AcceptableValues.ToList();
 
-                                UICreator.CreateDropdown(container, entryBase.Definition.Key, options, out DropdownOption dropdownOption);
+                                UICreator.CreateDropdown(container, entryBase.Definition.Key, options, entryBase.Description.Description.ToString(), out DropdownOption dropdownOption);
 
                                 string currentVal = (string)entryBase.BoxedValue;
                                 dropdownOption.SetValue(options.IndexOf(currentVal));
@@ -164,20 +169,22 @@ namespace ModConfig.Core
                         else if (settingType == typeof(Color))
                         {
                             Color currentColor = (Color)entryBase.BoxedValue;
-
                             string initialHex = ColorUtility.ToHtmlStringRGBA(currentColor);
 
                             UICreator.CreateStringInput(
                                 container,
                                 entryBase.Definition.Key,
                                 (newText) => {
-                                    if (ColorUtility.TryParseHtmlString(newText.StartsWith("#") ? newText : "#" + newText, out Color newCol))
+                                    string hex = newText.StartsWith("#") ? newText : "#" + newText;
+                                    if (ColorUtility.TryParseHtmlString(hex, out Color newCol))
                                     {
                                         entryBase.BoxedValue = newCol;
                                         Plugin.Log.LogInfo($"Config {entryBase.Definition.Key} updated to {newText}");
                                     }
                                 },
-                                initialHex
+                                entryBase.Description.Description.ToString(),
+                                initialHex,
+                                true
                             );
                         }
                         else if (settingType == typeof(KeyCode))
@@ -188,6 +195,7 @@ namespace ModConfig.Core
                                 container,
                                 configEntry.Definition.Key,
                                 configEntry.Value,
+                                entryBase.Description.Description.ToString(),
                                 out ActionRebindOption actionRebindOption,
                                 out KeybindHook actionHook
                             );
@@ -210,6 +218,7 @@ namespace ModConfig.Core
                                 container,
                                 configEntry.Definition.Key,
                                 configEntry.Value.MainKey,
+                                entryBase.Description.Description.ToString(),
                                 out ActionRebindOption actionRebindOption,
                                 out KeybindHook actionHook
                             );
@@ -231,6 +240,7 @@ namespace ModConfig.Core
                                 container,
                                 entryBase.Definition.Key,
                                 enumNames,
+                                entryBase.Description.Description.ToString(),
                                 out DropdownOption dropdownOption
                             );
 

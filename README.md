@@ -24,5 +24,5 @@ This then gets a list of all mods with a config and lists them at the top.
 
 1. You can create an issue on the [GitHub](https://github.com/AtomicTyler1/ModConfig)
 2. You can ping `@atomictyler` for help in the SBG Modding server.
-3. Find the `ModConfig` thread in the mod releases channel.
+3. Find the `ModConfig` thread in the mod releases channel. (If you are in it: https://discord.com/channels/1475881044795199550/1479248208440983632)
 4. Email admin@atomictyler.dev
