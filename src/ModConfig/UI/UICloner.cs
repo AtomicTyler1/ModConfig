@@ -56,12 +56,6 @@ namespace ModConfig.UI
             Transform generalPage = graphicsPage.parent.Find("General");
             if (generalPage == null) return null;
 
-            // v3 path: General/Tutorial/<button>
-            Transform tutorial = generalPage.Find("Tutorial");
-            if (tutorial != null && tutorial.childCount > 0)
-                return tutorial.GetChild(0).gameObject;
-
-            // v4+: find any Button component in the General page hierarchy
             var btn = generalPage.GetComponentInChildren<Button>(true);
             if (btn != null) return btn.gameObject;
 
