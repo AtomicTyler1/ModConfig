@@ -46,13 +46,11 @@ namespace ModConfig
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(FullScreenMessage), nameof(FullScreenMessage.ShowInternal))]
-        public static void Keybind_Localization(ref string message, string header, bool isError, bool requiresMouse, params ButtonEntry[] buttonEntries)
+        public static void Keybind_Localization(ref MessageOptions options, bool isError, bool requiresMouse, params ButtonEntry[] buttonEntries)
         {
-            if (message.Contains("UI/SETTINGS_Keybinds_ModConfigMap_"))
+            if (options.message != null && options.message.Contains("UI/SETTINGS_Keybinds_ModConfigMap_"))
             {
-                var name = message.Replace("UI/SETTINGS_Keybinds_ModConfigMap_", "");
-
-                message = name;
+                options.message = options.message.Replace("UI/SETTINGS_Keybinds_ModConfigMap_", "");
             }
         }
 
