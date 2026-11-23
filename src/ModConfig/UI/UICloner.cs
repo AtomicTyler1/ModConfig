@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.Localization.Components;
+using UnityEngine.UI;
 
 namespace ModConfig.UI
 {
@@ -34,9 +35,13 @@ namespace ModConfig.UI
             GameObject.DestroyImmediate(dropdown.GetComponentInChildren<LocalizeStringEvent>());
             dropdown.GetComponent<DropdownOption>().localized = null;
 
-            button = GameObject.Instantiate(graphicsPage.parent.Find("General/Tutorial").GetChild(0).gameObject, null);
-            button.name = "MODCONFIG_BUTTON_TEMPLATE";
-            GameObject.DestroyImmediate(button.GetComponentInChildren<LocalizeStringEvent>());
+            GameObject buttonSource = FindButtonTemplate(graphicsPage);
+            if (buttonSource != null)
+            {
+                button = GameObject.Instantiate(buttonSource, null);
+                button.name = "MODCONFIG_BUTTON_TEMPLATE";
+                GameObject.DestroyImmediate(button.GetComponentInChildren<LocalizeStringEvent>());
+            }
 
             slider = GameObject.Instantiate(audioPage.Find("Volume Options/Master Volume").gameObject);
             slider.name = "MODCONFIG_SLIDER_TEMPLATE";
@@ -44,6 +49,23 @@ namespace ModConfig.UI
 
             while (_container.transform.childCount > 0) UnityEngine.Object.DestroyImmediate(_container.transform.GetChild(0).gameObject);
             container = _container.gameObject;
+        }
+
+        private static GameObject FindButtonTemplate(Transform graphicsPage)
+        {
+            Transform generalPage = graphicsPage.parent.Find("General");
+            if (generalPage == null) return null;
+
+            // v3 path: General/Tutorial/<button>
+            Transform tutorial = generalPage.Find("Tutorial");
+            if (tutorial != null && tutorial.childCount > 0)
+                return tutorial.GetChild(0).gameObject;
+
+            // v4+: find any Button component in the General page hierarchy
+            var btn = generalPage.GetComponentInChildren<Button>(true);
+            if (btn != null) return btn.gameObject;
+
+            return null;
         }
     }
 }
